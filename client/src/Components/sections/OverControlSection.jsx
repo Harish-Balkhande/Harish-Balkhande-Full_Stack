@@ -299,17 +299,21 @@ export default function OverControlSection() {
     // Async function to send data to the server via POST request
     const sendPostData = async (updatedScores) => {
         const data = {
-            ballScores: updatedScores,
-            currentBallIndex: currentBallIndex,
             runs: runs,
             wickets: wickets,
-            over: over
+            over: over,
+            currentBallIndex: currentBallIndex,
+            ballScores: updatedScores,
+            rec_id: localStorage.getItem("rec_id") ? localStorage.getItem("rec_id") : 0
         };
 
         try {
             // Replace 'http://your-api-endpoint.com' with your actual API endpoint
-            const response = await axios.post('http://your-api-endpoint.com', data);
+            const response = await axios.post('http://localhost:8080/api/admin', data);
             console.log('Data posted successfully:', response.data);
+            if(response.data.status==="success"){
+                localStorage.setItem("rec_id", response.data.rec_id);
+            }
         } catch (error) {
             console.error('Error posting data:', error);
         }

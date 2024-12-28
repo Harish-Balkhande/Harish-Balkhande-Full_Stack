@@ -26,3 +26,7 @@ client/yarn-error.log*
 # Ignore other client-specific files or directories as needed
 client/.idea/       # JetBrains IDE project settings
 client/.vscode/     # VSCode project settings
+
+#server files 
+server/node_modules/
+server/package-lock
