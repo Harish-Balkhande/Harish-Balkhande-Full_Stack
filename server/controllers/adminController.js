@@ -1,18 +1,22 @@
 import Admin from "../models/admin/adminModel.js";
+import { sendScoreUpdate } from "../app.js";
 
 export const saveLiveData = async (req, res) => {
     try {
         const { runs, wickets, over, currentBallIndex, ballScores, rec_id } = req.body;
-        console.log("id : ", rec_id);
+        console.log("req body : ", req.body);
+
+        // Check if none of the values in ballScores are 0
+        const isValidBallScores = ballScores.every(score => score !== 0);
 
         if (rec_id === 0) {
             // Create new document if rec_id is 0
             const newData = new Admin({
                 runs,
                 wickets,
-                currentOver: over,
+                currentOver: over-1,
                 currentBallIndex,
-                allOversScoreList: ballScores // array
+                currentOverScore: ballScores, // array
             });
 
             const isSaved = await newData.save(); // Wait for the document to be saved
@@ -25,22 +29,32 @@ export const saveLiveData = async (req, res) => {
             }
         } else {
             // Update existing document if rec_id is provided
-            const updateData = await Admin.findByIdAndUpdate(
-                rec_id, // The ID to update
-                {
-                    runs,
-                    wickets,
-                    currentOver: over,
-                    currentBallIndex,
-                    allOversScoreList: ballScores
-                },
-                { new: true } // Ensure we get the updated document
-            );
+            const updateData = await Admin.findById(rec_id); // Find the existing document
+            if (!updateData) {
+                return res.status(404).json({ status: "failed", message: "Record not found" });
+            }
 
-            if (updateData) {
-                res.status(200).json({ status: "success", rec_id: updateData._id });
+            // Update the current values
+            updateData.runs = runs;
+            updateData.wickets = wickets;
+            updateData.currentOver = over-1;
+            updateData.currentBallIndex = currentBallIndex;
+            updateData.currentOverScore = ballScores;
+
+            // Append the ballScores for the current over to allOversScoreList only if valid
+            if (isValidBallScores) {
+                updateData.allOversScoreList.push(ballScores);
+            }
+
+            // Save the updated document
+            const updatedData = await updateData.save();
+
+            if (updatedData) {
+                // Emit the updated score to all connected clients via WebSocket
+                sendScoreUpdate(updatedData);
+                res.status(200).json({ status: "success", rec_id: updatedData._id });
             } else {
-                res.status(404).json({ status: "failed", message: "Record not found for update" });
+                res.status(500).json({ status: "failed", message: "Failed to update data" });
             }
         }
     } catch (error) {
@@ -48,6 +62,7 @@ export const saveLiveData = async (req, res) => {
         res.status(500).json({ status: "failed", message: error.message });
     }
 };
+
 
 
 

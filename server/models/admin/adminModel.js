@@ -17,8 +17,12 @@ const adminSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  currentOverScore: {
+    type:[mongoose.Schema.Types.Mixed],
+    required: true,
+  },
   allOversScoreList: {
-    type: [[Number]],
+    type: [[mongoose.Schema.Types.Mixed]],
     require: true,
   },
 }, {

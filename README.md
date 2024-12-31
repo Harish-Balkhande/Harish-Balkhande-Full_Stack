@@ -1,2 +1,3 @@
-# Incquet-Assignment
-Live cricket score board website
+# Cricket score Board MERN stack project
+
+
