@@ -99,7 +99,7 @@ const port = process.env.PORT || 8080;
 const server = http.createServer(app); // Create the HTTP server
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000", // Allow React app URL
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",
         methods: ["GET", "POST"],
     },
 });
@@ -143,10 +143,15 @@ mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true
 }).then((conn)=>{
     console.log("database connected");
-})
+}).catch(err => {
+    console.error("Database connection failed", err);
+});
 // Include router
 app.use("/api/admin", adminRoutes);
 
+app.get('/', (req, res) => {
+    res.send('Hello, world! This is your app running.');
+  });
 // Start the server
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
